@@ -1,0 +1,3 @@
+
+od --endian=big -A x -t x1z -v < $1 > $1.hex
+

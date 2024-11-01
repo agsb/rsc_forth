@@ -37,3 +37,11 @@ R65FK3P_R6501Q-SBC.patch     Patches for use with Glitch Works R6501Q SBC and 32
 These are `diff`-generated patches and apply with `patch`. Once the related kernel is patched, the development ROM will work without any patches. User-created ROM images will also work without patching.
 
 Patches for the `R65FK2P` ROM image, in addition to modifying serial configuration, put the R6501Q processor into a different mode than originally configured in the stock images. This allows operation with the Glitch Works R65X1Q SBC. With the patches applied, the major difference from the stock ROMs is that some I/O pins that are available in the original addressing mode are unavailable, as they are used for full addressing in the Glitch Works SBC. 
+
+## Notes
+
+Some notes about diassembler of ROMs at directory notes
+
+@agsb
+
+
