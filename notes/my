@@ -18,12 +18,11 @@ $2000   DEVELOPMENT  ROM
 $4000   --NOT USED--
 $F400   KERNEL ROM
 $FFFA   INTERRUPT TABLE
+```
 
 MARK = $A55A
 
 SECTOR = $005F  ; reserved 128 bytes
-
-```
 
 ### variables
 
@@ -37,7 +36,9 @@ RO:         .word 0
 SO:         .word 0
 TIB:        .word 0 ;   reserved 32 bytes
 
+```
 
+```
 KERNEL_ROM:
 * =     $F400
 
@@ -113,9 +114,8 @@ IRQ:    $FF84
  | F6CE | OR | 
  | F6DC | XOR | 
  | F6EA | SP@ | 
- | F6F3 | SP! |
- | F6FD | RP! |
- | F70C | RP@ |
+ | F6F3 | SP! | 
+ | F6FD | RP! | 
  | F717 | ;S | 
  | F722 | LEAVE | 
  | F734 | >R | 
@@ -625,20 +625,4 @@ IRQ:    $FF84
 
 
 ##
-
-F40E   10 F4                ; CFA
-F410   B1 4E                LDA ($4E),Y
-F412   48                   PHA
-F413   E6 4E                INC $4E
-F415   D0 02                BNE LF419
-F417   E6 4F                INC $4F
-F419   B1 4E      LF419     LDA ($4E),Y
-F41B   E6 4E      LF41B     INC $4E
-F41D   D0 02                BNE LF421
-F41F   E6 4F                INC $4F
-F421   CA         LF421     DEX
-F422   CA                   DEX
-F423   95 01      LF423     STA $01,X
-F425   68                   PLA
-F426   95 00                STA $00,X
 

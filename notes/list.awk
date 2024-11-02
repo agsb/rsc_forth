@@ -9,7 +9,7 @@ BEGIN {
 
     for (i = 2; i <= NF; i++) {
 
-        printf (" %06x %2s\n", mem, $i)
+        printf (" %06x: %2s\n", mem, $i)
     
         mem++
         
