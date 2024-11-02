@@ -108,8 +108,13 @@ IRQ:    $FF84
  | F6CE | OR | 
  | F6DC | XOR | 
  | F6EA | SP@ | 
+<<<<<<< HEAD
  | F6F3 | SP! |
  | F6FD | RP! |
+=======
+ | F6F3 | SP! | 
+ | F6FD | RP! | 
+>>>>>>> 76e2b69 ( ROM maps)
  | F70C | RP@ |
  | F717 | ;S | 
  | F722 | LEAVE | 
