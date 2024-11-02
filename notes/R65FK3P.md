@@ -108,8 +108,9 @@ IRQ:    $FF84
  | F6CE | OR | 
  | F6DC | XOR | 
  | F6EA | SP@ | 
- | F6F3 | SP! | 
- | F6FD | RP! | 
+ | F6F3 | SP! |
+ | F6FD | RP! |
+ | F70C | RP@ |
  | F717 | ;S | 
  | F722 | LEAVE | 
  | F734 | >R | 
