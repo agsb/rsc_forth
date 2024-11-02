@@ -1,0 +1,158 @@
+* = $FFFA
+NMI: 81 FF 
+RST: 4D FB 
+IRQ: 84 FF
+
+* = FF81
+6C 42 00                   JMP ($0042) 
+
+* = FF84
+6C 40 00                   JMP ($0040)
+
+* = $F428
+;----------------------------------------------------------------------
+; NEXT classic
+; test for interrupt
+F428   24 4A      LF428     BIT $4A
+F42A   30 19                BMI LF445
+; $4E,$4F is IP
+; $4C,$4D is W
+F42C   A0 01      LF42C     LDY #$01
+F42E   B1 4E                LDA ($4E),Y
+F430   85 4D                STA $4D
+F432   88                   DEY
+F433   B1 4E                LDA ($4E),Y
+F435   85 4C                STA $4C
+; update IP and Jump W-1
+F437   18                   CLC
+F438   A5 4E                LDA $4E
+F43A   69 02                ADC #$02
+F43C   85 4E                STA $4E
+F43E   90 02                BCC LF442
+F440   E6 4F                INC $4F
+F442   4C 4B 00   LF442     JMP $004B
+;------------------------------------
+* = $FB4A
+; mark $A55A for warm boot
+FB4A   8C 0E 03             STY $030E
+
+* = $FB4D
+;   Reset boot
+FB4D   A2 FF      LFB4D     LDX #$FF
+FB4F   9A                   TXS
+FB50   D8                   CLD
+FB51   18                   CLC
+
+; Setups
+;
+; MCR
+FB52   A9 00                LDA #$00
+FB54   85 14                STA $14
+
+; IFR IER
+FB56   A9 00                LDA #$00
+FB58   85 11                STA $11
+FB5A   85 12                STA $12
+
+; SCCR
+FB5C   A9 C4                LDA #$C4
+FB5E   85 15                STA $15
+
+FB60   A9 34                LDA #$34
+FB62   85 18                STA $18
+
+; ? SCSR
+FB64   A9 00                LDA #$00
+FB66   85 1A                STA $1A
+FB68   85 16                STA $16
+
+; INTFLG
+FB6A   85 4A                STA $4A
+
+; move JMP to W-1
+FB6C   A9 6C                LDA #$6C
+FB6E   85 4B                STA $4B
+
+; UEMIT
+FB70   A9 EF                LDA #$EF
+FB72   85 46                STA $46
+FB74   A9 F5                LDA #$F5
+FB76   85 47                STA $47
+
+; UKEY
+FB78   A9 AE                LDA #$AE
+FB7A   85 44                STA $44
+FB7C   A9 FF                LDA #$FF
+FB7E   85 45                STA $45
+
+; UP
+FB80   A9 00                LDA #$00
+FB82   85 48                STA $48
+FB84   A9 03                LDA #$03
+FB86   85 49                STA $49
+
+FB88   A0 05                LDY #$05
+FB8A   20 EC FB             JSR LFBEC
+FB8D   AD 0E 03             LDA $030E
+FB90   C9 5A                CMP #$5A
+FB92   D0 07                BNE LFB9B
+FB94   AD 0F 03             LDA $030F
+FB97   C9 A5                CMP #$A5
+FB99   F0 15                BEQ LFBB0
+; IRQVET  NMIVEC INTVEC
+FB9B   A9 4A      LFB9B     LDA #$4A
+FB9D   85 40                STA $40
+FB9F   85 42                STA $42
+FBA1   85 5B                STA $5B
+FBA3   A9 FB                LDA #$FB
+FBA5   85 41                STA $41
+FBA7   85 43                STA $43
+FBA9   85 5C                STA $5C
+
+FBAB   A0 0D                LDY #$0D
+FBAD   20 EC FB             JSR LFBEC
+FBB0   A9 FB      LFBB0     LDA #$FB
+FBB2   85 4F                STA $4F
+FBB4   A9 F5                LDA #$F5
+FBB6   85 4E                STA $4E
+FBB8   58                   CLI
+FBB9   A2 C2                LDX #$C2
+FBBB   A9 04                LDA #$04
+FBBD   85 5E                STA $5E
+FBBF   A0 00                LDY #$00
+FBC1   84 5D                STY $5D
+;
+FBC3   98         LFBC3     TYA
+FBC4   B1 5D                LDA ($5D),Y
+FBC6   C9 5A                CMP #$5A
+FBC8   D0 14                BNE LFBDE
+FBCA   C8                   INY
+;
+FBCB   B1 5D                LDA ($5D),Y
+FBCD   C9 A5                CMP #$A5
+FBCF   D0 0D                BNE LFBDE
+FBD1   C8                   INY
+; TURN-ON WORD
+FBD2   B1 5D                LDA ($5D),Y
+FBD4   85 4E                STA $4E
+FBD6   C8                   INY
+FBD7   B1 5D                LDA ($5D),Y
+FBD9   85 4F                STA $4F
+FBDB   4C 28 F4   LFBDB     JMP $F428
+;
+FBDE   A4 5E      LFBDE     LDY $5E
+FBE0   C8                   INY
+FBE1   C8                   INY
+FBE2   C8                   INY
+FBE3   C8                   INY
+FBE4   F0 F5                BEQ LFBDB
+FBE6   84 5E                STY $5E
+FBE8   A0 00                LDY #$00
+FBEA   F0 D7                BEQ LFBC3
+;
+FBEC   B9 00 F4   LFBEC     LDA $F400,Y
+FBEF   91 48                STA ($48),Y
+FBF1   88                   DEY
+FBF2   10 F8                BPL LFBEC
+FBF4   60                   RTS
+

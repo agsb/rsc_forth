@@ -1,5 +1,11 @@
 # Notes about RF65F*
 
+RSC-Forth User's Manual
+Rockwell International
+Document No: 29651N51
+Order No: 2148
+Octuber 1983
+
 ## Memory
 
 $0000   STACKS, SYSTEM VARIABLES, PORTS
@@ -35,6 +41,26 @@ KERNEL_ROM:
 NMI:    $FF81
 RST:    $FB4D
 IRQ:    $FF84
+
+## Forth stacks
+
+048     UP  address of user area
+04A     INTFLG
+04B     (W-1) JMP opcode
+04C     W   address of code field just interpreted by NEXT
+04E     IP  address of instruction pointer
+050     (N-1) (one byte before N to align the jmp at W-1)
+051     N   utility area of 8 bytes,
+059     XSAVE
+05B     (COLD)
+05D-0C1 data stack TOS      50 cells
+0C2-0FF return stack TOS    30 cells
+
+    SETUP moves a number in A (1, 2, 3, 4) cells from data stack to N area
+
+    INTFLG  request bit 7 and inhibit bit 6, from interrupts
+
+    ARM turns off inhibit 6
 
 
 ## Boot sequence
@@ -491,4 +517,122 @@ IRQ:    $FF84
     1. no address for inner interpreter or monitor
     2. address for TASK $40B maybe incorrect
     3. at $2846 the word name is void at listing (PDF)
+
+## FORTH ASM
+
+| MEMS   WORD |
+| ---- | -- |
+| 38F8 | N | 
+| 3903 | IP | 
+| 390D | W | 
+| 3918 | UP | 
+| 3926 | XSAVE | 
+| 3933 | NEXT | 
+| 3940 | PUSH | 
+| 394C | PUT | 
+| 3958 | POP | 
+| 3967 | POPTWO | 
+| 3976 | PUSHOA | 
+| 3984 | PUTOA | 
+| 3993 | BINARY | 
+| 39A1 | SETUP | 
+| 39D4 | ,A | 
+| 39DF | # | 
+| 39EC | MEM | 
+| 39F8 | ,X | 
+| 3A04 | ,Y | 
+| 3A10 | X) | 
+| 3A1C | )Y | 
+| 3A27 | ) | 
+| 3A34 | TOP | 
+| 3A44 | SEC | 
+| 3A54 | RP) | 
+| 3B23 | BRK, | 
+| 3B31 | CLC, | 
+| 3B3F | CLD, | 
+| 3B4D | CLI, | 
+| 3B5B | CLV, | 
+| 3B69 | DEX, | 
+| 3B77 | DEY, | 
+| 3B85 | INX, | 
+| 3B93 | INY, | 
+| 3BA1 | NOP, | 
+| 3BAF | PHA, | 
+| 3BBD | PHP, | 
+| 3BCB | PLA, | 
+| 3BD9 | PLP, | 
+| 3BE7 | RTI, | 
+| 3BF5 | RTS, | 
+| 3C03 | SEC, | 
+| 3C11 | SED, | 
+| 3C1F | SEI, | 
+| 3C2D | TAX, | 
+| 3C3B | TAY, | 
+| 3C49 | TSX, | 
+| 3C57 | TXA, | 
+| 3C65 | TYA, | 
+| 3C73 | TXS, | 
+| 3C81 | ADC, | 
+| 3C91 | AND, | 
+| 3CA1 | CMP, | 
+| 3CC1 | LDA, | 
+| 3CD1 | ORA, | 
+| 3CE1 | SBC, | 
+| 3CF1 | STA, | 
+| 3D01 | ASL, | 
+| 3D11 | DEC, | 
+| 3D21 | INC, | 
+| 3D31 | LSR, | 
+| 3D41 | ROL, | 
+| 3D51 | ROR, | 
+| 3D61 | STX, | 
+| 3D71 | CPX, | 
+| 3D91 | LDX, | 
+| 3DA1 | LDY, | 
+| 3DB1 | CPY, | 
+| 3DB1 | EOR, | 
+| 3DB1 | STY, | 
+| 3DC1 | JSR, | 
+| 3DD1 | JMP, | 
+| 3DE1 | BIT, | 
+| 3DF1 | 8MB, | 
+| 3E29 | RMB, | 
+| 3E4B | BITSET | 
+| 3E79 | BITCLR | 
+| 3E99 | BEGIN, | 
+| 3EAC | UNTIL, | 
+| 3ECD | WHILE, | 
+| 3EE6 | AGAIN, | 
+| 3EFC | REPEAT, | 
+| 3F1E | IF, | 
+| 3F37 | ENDIF, | 
+| 3F63 | THEN, | 
+| 3F73 | ELSE, | 
+| 3F9B | NOT | 
+| 3FAA | CS | 
+| 3FB5 | VS | 
+| 3FC0 | 0= | 
+| 3FCB | 0< | 
+| 3FDC | END-CODE | 
+
+    Note:   Forth reverse order of operands
+
+
+##
+
+F40E   10 F4                ; CFA
+F410   B1 4E                LDA ($4E),Y
+F412   48                   PHA
+F413   E6 4E                INC $4E
+F415   D0 02                BNE LF419
+F417   E6 4F                INC $4F
+F419   B1 4E      LF419     LDA ($4E),Y
+F41B   E6 4E      LF41B     INC $4E
+F41D   D0 02                BNE LF421
+F41F   E6 4F                INC $4F
+F421   CA         LF421     DEX
+F422   CA                   DEX
+F423   95 01      LF423     STA $01,X
+F425   68                   PLA
+F426   95 00                STA $00,X
 
