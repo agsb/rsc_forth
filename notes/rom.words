@@ -1,0 +1,309 @@
+;
+; Forth area in page zero
+;048     UP  address of user area
+;04A     INTFLG
+;04B     (W-1) JMP opcode
+;04C     W   address of code field just interpreted by NEXT
+;04E     IP  address of instruction pointer
+;050     (N-1) (one byte before N to align the jmp at W-1)
+;051     N   utility area of 8 bytes,
+;059     XSAVE
+;05B     (COLD)
+;05D-0C1 data stack TOS      50 cells
+;0C2-0FF return stack TOS    30 cells
+;
+;---------------------------------------
+; LIT:
+F410   10 F4                ; CFA
+; ip+2
+F412   B1 4E                LDA ($4E),Y
+F414   48                   PHA
+F415   E6 4E                INC $4E
+F417   D0 02                BNE LF41B
+F419   E6 4F                INC $4F
+; ip+1
+F41B   B1 4E      LF41B     LDA ($4E),Y
+F41D   E6 4E                INC $4E
+F41F   D0 02                BNE LF423
+F421   E6 4F                INC $4F
+;---------------------------------------
+: push
+F423   CA         LF423     DEX
+F424   CA                   DEX
+;---------------------------------------
+; wput
+F425   95 01                STA $01,X
+F427   68                   PLA
+F428   95 00                STA $00,X
+;---------------------------------------
+; qinterrupt
+F428   24 4A                BIT $4A
+F42A   30 19                BMI $F445
+: next
+F42C   A0 01                LDY #$01
+F42E   B1 4E                LDA ($4E),Y
+F430   85 4D                STA $4D
+F432   88                   DEY
+F433   B1 4E                LDA ($4E),Y
+F435   85 4C                STA $4C
+F437   18                   CLC
+F438   A5 4E                LDA $4E
+F43A   69 02                ADC #$02
+F43C   85 4E                STA $4E
+F43E   90 02                BCC LF442
+F440   E6 4F                INC $4F
+F442   4C 4B 00   LF442     JMP $004B
+;---------------------------------------
+; cold or break interrupt
+F445   70 E5                BVS $F42C
+F447   A5 5B                LDA $5B
+F449   85 4C                STA $4C
+F44B   A5 5C                LDA $5C
+F44D   85 4D                STA $4D
+F44F   A9 40                LDA #$40
+F451   85 4A                STA $4A
+F453   A0 00                LDY #$00
+F455   4C 4B 00             JMP $004B
+;---------------------------------------
+; copy n data stack to N area
+F458   5A F4                ; CFA
+F45A   B1 4E                LDA ($4E),Y
+F45C   48                   PHA
+F45D   98                   TYA
+F45E   F0 BB                BEQ $F41B
+F460   0A                   ASL A
+F461   85 50                STA $50
+F463   B5 00      LF463     LDA $00,X
+F465   99 51 00             STA $0051,Y
+F468   E8                   INX
+F469   C8                   INY
+F46A   C4 50                CPY $50
+F46C   D0 F5                BNE LF463
+F46E   A0 00                LDY #$00
+F470   60                   RTS
+;---------------------------------------
+; EXECUTE
+F471   73 F4                ; CFA
+F473   B5 00                LDA $00,X
+F475   85 4C                STA $4C
+F477   B5 01                LDA $01,X
+F479   85 4D                STA $4D
+F47B   E8                   INX
+F47C   E8                   INX
+F47D   4C 4B 00             JMP $004B
+;---------------------------------------
+; BRANCH
+F480   84 F4                ; CFA
+F482   A6 59                LDX $59 ; ????
+F484   18                   CLC
+F485   B1 4E                LDA ($4E),Y
+F487   65 4E                ADC $4E
+F489   48                   PHA
+F48A   C8                   INY
+F48B   B1 4E                LDA ($4E),Y
+F48D   65 4F                ADC $4F
+F48F   85 4F                STA $4F
+F491   68                   PLA
+F492   85 4E                STA $4E
+F494   4C 28 F4             JMP $F428
+;---------------------------------------
+; 0BRANCH
+FF97   99 F4                ; CFA
+F499   E8                   INX
+F49A   E8                   INX
+F49B   B5 FE                LDA $FE,X
+F49D   15 FF                ORA $FF,X
+F49F   F0 E3                BEQ $F484
+;
+F4A1   18                   CLC
+F4A2   A5 4E                LDA $4E
+F4A4   69 02                ADC #$02
+F4A6   85 4E                STA $4E
+F4A8   90 02                BCC LF4AC
+F4AA   E6 4F                INC $4F
+F4AC   4C 28 F4   LF4AC     JMP $F428
+;---------------------------------------
+; (LOOP)
+F4AF   B1 F4                ; CFA
+F4B1   86 59                STX $59
+F4B3   BA                   TSX
+F4B4   F6 01                INC $01,X
+F4B6   D0 02                BNE LF4BA
+F4B8   F6 02                INC $02,X
+F4BA   18         LF4BA     CLC
+F4BB   B5 03                LDA $03,X
+F4BD   F5 01                SBC $01,X
+F4BF   B5 04                LDA $04,X
+F4C1   F5 02                SBC $02,X
+; 
+F4C3   10 BD                BPL $F482
+F4C5   70 BB                BVS $F482
+F4C7   E8                   INX
+F4C8   E8                   INX
+F4C9   E8                   INX
+F4CA   E8                   INX
+F4CB   9A                   TXS
+F4CC   A6 59                LDX $59
+F4CE   50 D1                BVC $F4A1
+;---------------------------------------
+; (+LOOP)
+F4D0   D2 F4                ; CFA
+F4D2   E8                   INX
+F4D3   E8                   INX
+F4D4   86 59                STX $59
+F4D6   B5 FF                LDA $FF,X
+F4D8   48                   PHA
+F4D9   48                   PHA
+F4DA   B5 FE                LDA $FE,X
+F4DC   BA                   TSX
+F4DD   E8                   INX
+F4DE   E8                   INX
+F4DF   18                   CLC
+F4E0   75 01                ADC $01,X
+F4E2   95 01                STA $01,X
+F4E4   68                   PLA
+F4E5   75 02                ADC $02,X
+F4E7   95 02                STA $02,X
+F4E9   68                   PLA
+F4EA   10 CE                BPL $F4BA
+F4EC   18                   CLC
+F4ED   B5 01                LDA $01,X
+F4EF   F5 03                SBC $03,X
+F4F1   B5 00                LDA $00,X
+F4F3   F5 04                SBC $04,X
+F4F5   4C C3 F4             JMP $F4C3
+;---------------------------------------
+; (DO)
+F4F8   FA F4                ; CFA
+F4FA   B5 03                LDA $03,X
+F4FC   48                   PHA
+F4FD   B5 02                LDA $02,X
+F4FF   48                   PHA
+F500   B5 01                LDA $01,X
+F502   48                   PHA
+F503   B5 00                LDA $00,X
+F505   48                   PHA
+; 2drop
+F506   E8                   INX
+F507   E8                   INX
+; drop
+F508   E8                   INX
+F509   E8                   INX
+F50A   4C 28 F4             JMP $F428
+;---------------------------------------
+; DIGIT
+F50D   0F F4                ; CFA
+F50F   38                   SEC
+F510   B5 02                LDA $02,X
+F512   E9 30                SBC #$30
+F514   30 18                BMI $F52E
+F516   C9 0A                CMP #$0A
+F518   30 07                BMI LF521
+F51A   38                   SEC
+F51B   E9 07                SBC #$07
+F51D   C9 0A                CMP #$0A
+F51F   30 0D                BMI $F52E
+F521   D5 00      LF521     CMP $00,X
+F523   10 09                BPL $F52E
+F525   95 02                STA $02,X
+F527   A9 01                LDA #$01
+F529   48                   PHA
+F52A   98                   TYA
+F52B   4C 23 F4             JMP $F423
+F52E   98         LF52E     TYA
+F52F   48                   PHA
+F530   E8                   INX
+F531   E8                   INX
+F532   4C 23 F4             JMP $F423
+;---------------------------------------
+; (FIND)
+F535   37 F5                ; CFA
+F537   A9 02                LDA #$02
+F539   20 60 F4             JSR $F460
+F53C   86 59                STX $59
+F53E   A0 00      LF53E     LDY #$00
+F540   B1 51                LDA ($51),Y
+F542   51 53                EOR ($53),Y
+F544   29 3F                AND #$3F
+F546   D0 2D                BNE LF575
+F548   C8         LF548     INY
+F549   B1 51                LDA ($51),Y
+F54B   51 53                EOR ($53),Y
+F54D   0A                   ASL A
+F54E   D0 23                BNE LF573
+F550   90 F6                BCC LF548
+F552   A6 59                LDX $59
+F554   CA                   DEX
+F555   CA                   DEX
+F556   CA                   DEX
+F557   CA                   DEX
+F558   18                   CLC
+F559   98                   TYA
+F55A   69 03                ADC #$03
+F55C   65 51                ADC $51
+F55E   95 02                STA $02,X
+F560   A0 00                LDY #$00
+F562   98                   TYA
+F563   65 52                ADC $52
+F565   95 03                STA $03,X
+F567   94 01                STY $01,X
+F569   B1 51                LDA ($51),Y
+F56B   95 00                STA $00,X
+F56D   A9 01                LDA #$01
+F56F   48                   PHA
+F570   4C 21 F4             JMP $F421
+F573   B0 05      LF573     BCS LF57A
+F575   C8         LF575     INY
+F576   B1 51                LDA ($51),Y
+F578   10 FB                BPL LF575
+F57A   C8         LF57A     INY
+F57B   B1 51                LDA ($51),Y
+F57D   AA                   TAX
+F57E   C8                   INY
+F57F   B1 51                LDA ($51),Y
+F581   85 52                STA $52
+F583   86 51                STX $51
+F585   05 51                ORA $51
+F587   D0 B5                BNE LF53E
+F589   A6 59                LDX $59
+F58B   A9 00                LDA #$00
+F58D   48                   PHA
+F58E   4C 21 F4             JMP $F421
+;---------------------------------------
+; ENCLOSE
+F591   93 F5                ; (CFA)
+F593   A9 02                LDA #$02
+F595   20 60 F4             JSR $F460
+F598   8A                   TXA
+F599   38                   SEC
+F59A   E9 08                SBC #$08
+F59C   AA                   TAX
+F59D   94 03                STY $03,X
+F59F   94 01                STY $01,X
+F5A1   D0 0B                BNE LF5AE
+F5A3   C8         LF5A3     INY
+F5A4   D0 08                BNE LF5AE
+F5A6   E6 54                INC $54
+F5A8   F6 01                INC $01,X
+F5AA   F6 03                INC $03,X
+F5AC   F6 05                INC $05,X
+F5AE   B1 53      LF5AE     LDA ($53),Y
+F5B0   C5 51                CMP $51
+F5B2   F0 EF                BEQ LF5A3
+F5B4   94 04                STY $04,X
+F5B6   B1 53      LF5B6     LDA ($53),Y
+F5B8   D0 0E                BNE LF5C8
+F5BA   94 02                STY $02,X
+F5BC   94 00                STY $00,X
+F5BE   98                   TYA
+F5BF   D5 04                CMP $04,X
+F5C1   D0 02                BNE LF5C5
+F5C3   F6 02                INC $02,X
+F5C5   4C 28 F4   LF5C5     JMP $F428
+F5C8   94 02      LF5C8     STY $02,X
+F5CA   C8                   INY
+F5CB   C5 51                CMP $51
+F5CD   D0 E7                BNE LF5B6
+F5CF   94 00                STY $00,X
+F5D1   4C 28 F4             JMP $F428
+
