@@ -65,6 +65,7 @@ F451   85 4A                STA $4A
 F453   A0 00                LDY #$00
 F455   4C 4B 00             JMP $004B
 ;---------------------------------------
+; SETUP
 ; copy n data stack to N area
 F458   5A F4                ; CFA
 F45A   B1 4E                LDA ($4E),Y
@@ -306,4 +307,4 @@ F5CB   C5 51                CMP $51
 F5CD   D0 E7                BNE LF5B6
 F5CF   94 00                STY $00,X
 F5D1   4C 28 F4             JMP $F428
-
+;---------------------------------------
