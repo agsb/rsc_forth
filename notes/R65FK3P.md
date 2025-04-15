@@ -88,8 +88,11 @@ IRQ:    $FF84
 
 ## KERNEL ROM
 
+table of rom words
+
+
  | MEMS  | WORD |
- | ----  | ---- | 
+ | :----:  | :----: | 
  | F056 | DREAD | 
  | F40E | LIT | 
  | F458 | CLIT | 
@@ -232,6 +235,10 @@ IRQ:    $FF84
 
 ## FORTH ROM
 
+Table of external ROM
+
+| MEMS  | WORD |
+| :----:  | :----: | 
 |  40B | TASK |
 | 2032 | LIT |
 | 203B | CLIT |
@@ -526,8 +533,10 @@ IRQ:    $FF84
 
 ## FORTH ASM
 
-| MEMS   WORD |
-| ---- | -- |
+Table of loaded words
+
+| MEMS | WORD |
+| :----: | :----: |
 | 38F8 | N | 
 | 3903 | IP | 
 | 390D | W | 
